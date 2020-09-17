@@ -1,0 +1,24 @@
+import os
+import cv2
+import numpy as np
+
+def count_seed(file_pathname):
+	for filename in os.listdir(file_pathname):
+		#print(filename)
+		kernel = np.ones((5,5),np.uint8)
+		img = cv2.imread(file_pathname + '/' + filename)
+		gray_img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY) #灰度处理
+		ret, th1 = cv2.threshold(gray_img, 120, 255,cv2.THRESH_BINARY)
+		erosion = cv2.erode(th1, kernel, iterations=1)#腐蚀
+		dist_img = cv2.distanceTransform(erosion, cv2.DIST_L1, cv2.DIST_MASK_3)
+		dist_output = cv2.normalize(dist_img, 0, 1.0, cv2.NORM_MINMAX)
+		ret, th2 = cv2.threshold(dist_output * 80, 0.3, 255, cv2.THRESH_BINARY)
+		opening = cv2.morphologyEx(th2, cv2.MORPH_OPEN, kernel)
+		opening = np.array(opening,np.uint8)
+		contours, hierachy = cv2.findContours(opening, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+		count = 0
+		for cnt in contours:
+			count += 1
+		cv2.waitKey(0)
+		print(count)
+count_seed(r"D:\jupyter work\picture")
